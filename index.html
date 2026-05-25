@@ -533,18 +533,57 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--subtext); }
   </style>
 
-  <script src="/uv/uv.bundle.js"></script>
-  <script src="/uv/uv.config.js"></script>
+  <script src="uv/uv.bundle.js"></script>
+  <script src="uv/uv.config.js"></script>
+  <script src="uv/baremux/index.js"></script>
+
   <script>
-    (async function () {
-      if (!('serviceWorker' in navigator)) return;
-      try {
-        await navigator.serviceWorker.register('/uv/sw.js', { scope: '/uv/service/' });
-        console.log('[SW] Proxy Interceptor Online.');
-      } catch (e) {
-        console.error('[SW] Registration failed:', e);
-      }
-    })();
+    async function initCelestriumEngine() {
+        try {
+            // 1. Establish absolute Ultraviolet configuration parameters
+            const configData = {
+                prefix: '/uv/service/',
+                bare: 'https://celestrium-browser-bare-server.pages.dev/bare/', 
+                encodeUrl: Ultraviolet.codec.xor.encode,
+                decodeUrl: Ultraviolet.codec.xor.decode,
+                handler: '/uv/uv.handler.js',
+                bundle: '/uv/uv.bundle.js',
+                config: '/uv/uv.config.js',
+                sw: '/sw.js'
+            };
+            
+            window.__uv$config = configData;
+            self.__uv$config = configData;
+            console.log('Ultraviolet Framework Synchronized Successfully');
+
+            if ('serviceWorker' in navigator) {
+              await navigator.serviceWorker.register('./sw.js', {
+                  scope: '/'
+              });
+              console.log('Celestrium Service Worker Active');
+
+              console.log('Waiting for SW ready...');
+              await navigator.serviceWorker.ready;
+              console.log('SW is ready');
+
+              const absoluteWorkerUrl = new URL('/uv/baremux/worker.js', window.location.origin).toString();
+              console.log('Worker URL:', absoluteWorkerUrl);
+              const connection = new BareMux.BareMuxConnection(absoluteWorkerUrl);
+              console.log('Connection created');
+              
+              await connection.setTransport('https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-as-module3@2.2.5/dist/index.mjs', [
+                  'https://celestrium-browser-bare-server.pages.dev/bare/'
+              ]);
+              
+              console.log('BareMux Transport Channel Active and Bound Successfully');
+          }
+        } catch (err) {
+            console.error('Celestrium Engine Crash:', err);
+        }
+    }
+
+    // Launch connection pipeline safely on window load execution
+    window.addEventListener('load', initCelestriumEngine);
   </script>
 </head>
 
