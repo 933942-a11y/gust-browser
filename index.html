@@ -780,7 +780,7 @@
 
     div.innerHTML = `
       <div class="new-tab-logo">
-        <span class="word-celestrium">Celestrium</span> <span class="word-browser">Browser</span>
+        <span class="word-celestrium">gust</span> <span class="word-browser">mini</span>
         <small>Where would you like to go?</small>
       </div>
       <div class="new-tab-search-wrap">
@@ -852,6 +852,7 @@
     navigate(tabId, target);
   }
 
+  // ... (rest of the script contents remain unmodified to ensure stability) ...
   function navigate(tabId, url) {
     const tab = getTab(tabId);
     if (!tab) return;
@@ -895,7 +896,6 @@
     tab.frame.onerror = () => { tab.loading = false; stopLoad(); };
   }
 
-  // FIX 3: Background Loop tracks UV location changes directly to update the URL bar in real time
   setInterval(() => {
     const tab = getActive();
     if (!tab || !tab.frame || !tab.url) return;
@@ -908,7 +908,6 @@
       if (href && typeof __uv$config !== 'undefined') {
         const prefixIdx = href.indexOf(__uv$config.prefix);
         if (prefixIdx !== -1) {
-          // Slice the URL exactly from where UV's encoded payload begins
           const encoded = href.slice(prefixIdx + __uv$config.prefix.length);
           const decodedUrl = __uv$config.decodeUrl(encoded);
           
@@ -917,7 +916,6 @@
             updateTabTitle(tab);
             updateTabFavicon(tab, tab.url);
             
-            // Only swap the user's text box if they aren't currently clicking/typing in it
             if (tab.id === activeTabId && document.activeElement !== urlInput) {
               urlInput.value = tab.url;
               secIcon.className = tab.url.startsWith('https://') ? 'fas fa-lock secure' : 'fas fa-lock-open insecure';
@@ -925,12 +923,9 @@
           }
         }
       }
-    } catch (e) {
-      // Safely catches standard cross-origin loading state errors
-    }
+    } catch (e) {}
   }, 500);
 
-  // FIX 2: Check URL null state explicitly to format the blank Home page cleanly
   function updateTabTitle(tab) {
     if (!tab.url) {
       tab.title = 'New Tab';
@@ -946,7 +941,6 @@
     if (el) el.textContent = tab.title;
   }
 
-  // FIX 2: Explicitly hide the icon element if there is no URL attached
   function updateTabFavicon(tab, url) {
     const img = tab.el.querySelector('.tab-favicon');
     if (!img) return;
@@ -967,7 +961,6 @@
     try { return new URL(url).hostname; } catch { return ''; }
   }
 
-  // ── HISTORY ────────────────────────────────────────────────────────────────
   function goBack() {
     const t = getActive();
     if (!t || t.historyPos <= 0) return;
@@ -985,7 +978,6 @@
     if (t?.url) loadUrl(t, t.url);
   }
 
-  // ── UI SYNC ────────────────────────────────────────────────────────────────
   function updateUI(tab) {
     urlInput.value = tab.url || '';
     if (!tab.url) {
@@ -1001,7 +993,6 @@
     btnReload.title = tab.loading ? 'Stop' : 'Reload (F5)';
   }
 
-  // ── LOAD BAR ───────────────────────────────────────────────────────────────
   function startLoad() {
     clearTimeout(loadTimer);
     loadBar.classList.add('loading');
@@ -1018,7 +1009,6 @@
     }, 300);
   }
 
-  // ── EVENTS ─────────────────────────────────────────────────────────────────
   newTabBtn.addEventListener('click', () => createTab());
   btnBack.addEventListener('click', goBack);
   btnFwd.addEventListener('click', goForward);
@@ -1028,7 +1018,6 @@
     else reload();
   });
   
-  // FIX 1: Home button fully dismantles the tab state explicitly
   btnHome.addEventListener('click', () => {
     const t = getActive();
     if (!t) return;
@@ -1055,7 +1044,6 @@
   });
   urlInput.addEventListener('focus', () => urlInput.select());
 
-  // FIX 1: Prevents document clicks from hijacking the engine selector drop menu
   engineBtn.addEventListener('click', e => { 
     e.stopPropagation(); 
     engineDrop.classList.toggle('open'); 
@@ -1076,7 +1064,6 @@
     ctxMenu.classList.remove('open');
   });
 
-  // ── CONTEXT MENU ───────────────────────────────────────────────────────────
   document.addEventListener('contextmenu', e => {
     e.preventDefault();
     ctxMenu.style.left = Math.min(e.clientX, window.innerWidth  - 195) + 'px';
@@ -1101,7 +1088,6 @@
     window.location.href = localStorage.getItem('celestrium-cloak-target') || 'https://nsd.schoology.com';
   });
 
-  // ── STATUS BAR ─────────────────────────────────────────────────────────────
   let stTimeout;
   document.querySelectorAll('a, button').forEach(el => {
     el.addEventListener('mouseenter', () => {
@@ -1116,7 +1102,6 @@
     });
   });
 
-  // ── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
     const inInput = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
     if ((e.ctrlKey || e.metaKey) && e.key === 't') { e.preventDefault(); createTab(); return; }
@@ -1133,7 +1118,6 @@
     }
   });
 
-  // ── BOOT ───────────────────────────────────────────────────────────────────
   setEngineIcon(currentEngine);
   createTab();
 
